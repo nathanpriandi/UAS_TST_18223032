@@ -1,0 +1,12 @@
+{
+  "name": "product-catalog-service",
+  "version": "1.0.0",
+  "description": "Product Catalog Microservice for UAS TST (E-commerce)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
