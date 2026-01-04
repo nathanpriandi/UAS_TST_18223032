@@ -5,11 +5,11 @@ Microservice untuk manajemen katalog produk E-commerce, dibangun dengan pendekat
 ## Fitur Utama
 - **Zero Dependency**: Native Node.js (`http`, `fs`, `path`) tanpa framework eksternal.
 - **CRUD Operations**: Create, Read, Update, Delete untuk data produk.
-- **Secure Integration**: Validasi User/Seller sebelum mengizinkan penambahan atau pengubahan produk.
+- **Open Access**: Tidak ada validasi token atau integrasi eksternal (Standalone Mode).
 - **Persistent Storage**: Database produk berbasis file JSON (`data/products.json`).
 
 ## Arsitektur
-Layanan ini mengelola domain **Product Catalog**:
+Layanan ini mengelola domain **Product Catalog** secara mandiri:
 - **Entities**: Product
 - **Attributes**: Title, Price, Description, Category, Image, Rating.
 - **Repository**: File JSON Local
@@ -17,8 +17,6 @@ Layanan ini mengelola domain **Product Catalog**:
 ## Struktur Folder
 ```
 .
-├── auth.js          # Middleware validasi token (Bearer)
-├── integration.js   # HTTP Client untuk User Management Service
 ├── server.js        # Entry point & Logic utama
 ├── Dockerfile       # Konfigurasi container
 ├── package.json     # Metadata proyek
@@ -43,12 +41,9 @@ Layanan ini mengelola domain **Product Catalog**:
 
 ### 4. Add Product
 - **URL**: `POST /api/products`
-- **Headers**:
-  - `Authorization`: `Bearer <token>`
 - **Body**:
   ```json
   {
-    "userId": "admin_user",
     "title": "New Product",
     "price": 29.99,
     "description": "Description here",
@@ -60,13 +55,11 @@ Layanan ini mengelola domain **Product Catalog**:
 
 ### 5. Update Product
 - **URL**: `PUT /api/products/:id`
-- **Headers**: `Authorization`: `Bearer <token>`
-- **Body**: JSON fields to update (must include `userId` for validation).
+- **Body**: JSON fields to update.
 - **Response**: `200 OK`
 
 ### 6. Delete Product
 - **URL**: `DELETE /api/products/:id`
-- **Headers**: `Authorization`: `Bearer <token>`
 - **Response**: `200 OK`
 
 ## Cara Menjalankan
