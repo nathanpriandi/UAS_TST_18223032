@@ -1,8 +1,6 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
-const { checkAuth } = require('./auth');
-const { validateUser } = require('./integration');
 
 const PORT = process.env.PORT || 3002;
 const DATA_FILE = path.join(__dirname, 'data', 'products.json');
@@ -39,7 +37,7 @@ const server = http.createServer(async (req, res) => {
     
     if (url.pathname === '/' && req.method === 'GET') {
         res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ status: 'Product Service Ready', uptime: process.uptime() }));
+        res.end(JSON.stringify({ status: 'Product Service Ready (Standalone)', uptime: process.uptime() }));
         return;
     }
 
@@ -70,27 +68,17 @@ const server = http.createServer(async (req, res) => {
 
     // POST /api/products (Create Product)
     if (url.pathname === '/api/products' && req.method === 'POST') {
-        const authorized = await checkAuth(req, res);
-        if (!authorized) return;
-
         let body = '';
         req.on('data', chunk => body += chunk.toString());
 
         req.on('end', async () => {
             try {
                 const data = JSON.parse(body);
-                const { userId, title, price, description, category, image } = data;
+                const { title, price, description, category, image } = data;
 
-                if (!userId || !title || !price) {
+                if (!title || !price) {
                     res.writeHead(400, { 'Content-Type': 'application/json' });
-                    res.end(JSON.stringify({ error: 'Missing required fields: userId, title, price' }));
-                    return;
-                }
-
-                const user = await validateUser(userId);
-                if (!user) {
-                    res.writeHead(403, { 'Content-Type': 'application/json' });
-                    res.end(JSON.stringify({ error: 'Invalid User ID. Only verified users can add products.' }));
+                    res.end(JSON.stringify({ error: 'Missing required fields: title, price' }));
                     return;
                 }
 
@@ -103,7 +91,7 @@ const server = http.createServer(async (req, res) => {
                     category: category || 'general',
                     image: image || '',
                     rating: { rate: 0, count: 0 },
-                    createdBy: user.name || userId
+                    createdBy: 'standalone-user'
                 };
 
                 products.push(newProduct);
@@ -122,9 +110,6 @@ const server = http.createServer(async (req, res) => {
 
     // PUT /api/products/:id (Update Product)
     if (idMatch && req.method === 'PUT') {
-        const authorized = await checkAuth(req, res);
-        if (!authorized) return;
-
         const id = idMatch[1];
         let body = '';
         req.on('data', chunk => body += chunk.toString());
@@ -132,25 +117,16 @@ const server = http.createServer(async (req, res) => {
         req.on('end', async () => {
             try {
                 const data = JSON.parse(body);
-                const { userId, ...updates } = data;
-
-                if (!userId) {
-                    res.writeHead(400, { 'Content-Type': 'application/json' });
-                    res.end(JSON.stringify({ error: 'Missing required field: userId' }));
-                    return;
-                }
-
-                const user = await validateUser(userId);
-                if (!user) {
-                    res.writeHead(403, { 'Content-Type': 'application/json' });
-                    res.end(JSON.stringify({ error: 'Invalid User ID.' }));
-                    return;
-                }
+                // No userId validation needed
+                const { ...updates } = data;
 
                 const products = getProducts();
                 const index = products.findIndex(p => String(p.id) === id);
 
                 if (index !== -1) {
+                    // Prevent id from being updated
+                    delete updates.id;
+                    
                     products[index] = { ...products[index], ...updates };
                     saveProducts(products);
 
@@ -171,9 +147,6 @@ const server = http.createServer(async (req, res) => {
 
     // DELETE /api/products/:id
     if (idMatch && req.method === 'DELETE') {
-        const authorized = await checkAuth(req, res);
-        if (!authorized) return;
-
         const id = idMatch[1];
         const products = getProducts();
         const filteredProducts = products.filter(p => String(p.id) !== id);
