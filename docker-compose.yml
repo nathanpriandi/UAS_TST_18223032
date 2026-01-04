@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  product-catalog:
+    build: .
+    container_name: product-svc
+    ports:
+      - "2026:3002"
+    environment:
+      - PORT=3002
+      - NODE_ENV=production
+    restart: always
