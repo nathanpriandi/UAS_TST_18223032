@@ -32,23 +32,20 @@ export default function InventoryForm({ activeSellerId, onSuccess, currentInvent
     setError("");
 
     try {
-      // Check for duplicates (Case Insensitive)
       const existingProduct = currentInventory.find(
         (p) => p.title.toLowerCase().trim() === formData.title.toLowerCase().trim()
       );
 
       if (existingProduct) {
-        // Update existing product stock
         const newStock = existingProduct.stock + Number(formData.stock);
         await updateProductStock(existingProduct.id, newStock);
         onSuccess(`Produk sudah ada. Stok diperbarui menjadi ${newStock}.`);
       } else {
-        // Create new product
         await createProduct({
           ...formData,
           price: Number(formData.price),
           stock: Number(formData.stock),
-          image: "", // Handled by API default or placeholder
+          image: "",
           createdBy: activeSellerId
         }, activeSellerId);
         onSuccess("Produk baru berhasil ditambahkan!");

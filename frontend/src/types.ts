@@ -1,5 +1,5 @@
 export interface User {
-  id: string; // Assuming ID exists, though plan mentions username/fullName/email
+  id: string;
   username: string;
   fullName: string;
   email: string;
@@ -17,8 +17,8 @@ export interface Product {
     rate: number;
     count: number;
   };
-  createdBy: string; // Maps to User ID
-  owners?: Record<string, number>; // Maps UserID -> Quantity Owned
+  createdBy: string;
+  owners?: Record<string, number>;
 }
 
 export interface CombinedProduct extends Product {

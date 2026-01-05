@@ -15,11 +15,9 @@ export default function Home() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   
-  // Session State
   const [activeSellerId, setActiveSellerId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<Tab>("overview");
   
-  // Feedback State
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const fetchData = async () => {
@@ -41,7 +39,6 @@ export default function Home() {
     fetchData();
   }, []);
 
-  // Admin Check Logic
   const activeUser = users.find(u => String(u.id) === activeSellerId);
   const isAdmin = activeUser ? (activeUser.username === "admin" || String(activeUser.id) === "1") : false;
 
@@ -78,11 +75,8 @@ export default function Home() {
       return;
     }
     try {
-      // Logic: Update the SINGLE product instance.
-      // 1. Reduce Stock
       const newStock = product.stock - 1;
       
-      // 2. Update Ownership Record
       const currentOwners = product.owners || {};
       const newOwnerCount = (currentOwners[activeSellerId] || 0) + 1;
       
@@ -106,21 +100,16 @@ export default function Home() {
     fetchData();
   };
 
-  // --- DERIVED LISTS ---
-  
-  // 1. My Sales: Products I Created
   const mySales = activeSellerId 
     ? products.filter(p => String(p.createdBy) === activeSellerId) 
     : [];
 
-  // 2. My Purchases: Products I Own (via owners map)
   const myPurchases = activeSellerId
     ? products.filter(p => p.owners && p.owners[activeSellerId] && p.owners[activeSellerId] > 0)
     : [];
 
   return (
     <main className="min-h-screen bg-gray-50 dark:bg-black py-8 px-4 sm:px-6 lg:px-8">
-      {/* Toast Notification */}
       {toastMessage && (
         <div className="fixed top-4 right-4 z-50 bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg animate-fade-in">
           {toastMessage}
@@ -129,17 +118,15 @@ export default function Home() {
 
       <div className="max-w-7xl mx-auto space-y-8">
         
-        {/* Header */}
         <div className="text-center">
           <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white sm:text-4xl">
             Integrated Marketplace Console
           </h1>
           <p className="mt-3 max-w-2xl mx-auto text-xl text-gray-500 dark:text-gray-400 sm:mt-4">
-            Sistem Manajemen Inventaris dengan Moderasi Identitas Terintegrasi
+            Platform Marketplace Terintegrasi - High Performance STB Edition
           </p>
         </div>
 
-        {/* Unified Session Orchestrator */}
         <section className="max-w-xl mx-auto">
            <SellerSelector 
              users={users} 
@@ -153,7 +140,6 @@ export default function Home() {
            )}
         </section>
 
-        {/* Navigation Tabs */}
         <div className="border-b border-gray-200 dark:border-zinc-800">
           <nav className="-mb-px flex space-x-8 justify-center" aria-label="Tabs">
             <button
@@ -164,7 +150,7 @@ export default function Home() {
                   : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300"
               } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
             >
-              Marketplace Overview {isAdmin && "(Admin Access)"}
+              🛒 Marketplace Overview {isAdmin && "(Admin Access)"}
             </button>
             <button
               onClick={() => setActiveTab("inventory")}
@@ -174,7 +160,7 @@ export default function Home() {
                   : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300"
               } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
             >
-              Inventaris Saya (Jual & Beli)
+              📦 Inventaris Saya (Jual & Beli)
             </button>
             <button
               onClick={() => setActiveTab("sellers")}
@@ -184,12 +170,11 @@ export default function Home() {
                   : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300"
               } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
             >
-              Profil Identitas Terintegrasi
+              👥 Profil Identitas Terintegrasi
             </button>
           </nav>
         </div>
 
-        {/* Tab Content */}
         <div>
           {loading && <div className="text-center py-10">Loading integrated data...</div>}
 
@@ -217,7 +202,6 @@ export default function Home() {
                 </div>
               ) : (
                 <>
-                  {/* SECTION 1: ADD NEW PRODUCTS (SALES) */}
                   <div>
                     <InventoryForm 
                       activeSellerId={activeSellerId} 
@@ -226,7 +210,6 @@ export default function Home() {
                     />
                   </div>
 
-                  {/* SECTION 2: MY SALES */}
                   <div>
                      <div className="flex items-center mb-4">
                         <h3 className="text-xl font-bold text-gray-900 dark:text-white mr-2">
@@ -243,11 +226,10 @@ export default function Home() {
                       isAdmin={isAdmin}
                       onDelete={handleDeleteProduct}
                       onUpdateStock={handleUpdateStock}
-                      onBuy={handleBuyProduct} // Can buy your own stuff? Sure, why not.
+                      onBuy={handleBuyProduct}
                     />
                   </div>
 
-                  {/* SECTION 3: MY PURCHASES */}
                   {myPurchases.length > 0 && (
                     <div className="pt-8 border-t border-gray-200 dark:border-zinc-800">
                       <div className="flex items-center mb-4">
@@ -262,21 +244,13 @@ export default function Home() {
                        Produk ini adalah aset yang Anda beli dari pengguna lain. Anda tidak dapat menjualnya kembali di sini, tetapi Anda memilikinya.
                      </p>
                       
-                      {/* Reuse ProductGrid but maybe we want a different look? 
-                          For now, keep consistency but the Card will handle the logic. 
-                       */}
                       <ProductGrid 
                         products={myPurchases} 
                         activeSellerId={activeSellerId}
-                        isAdmin={isAdmin} // Admin can still moderate
-                        // No deletion for purchases implemented yet, or use generic delete? 
-                        // Generic delete removes the PRODUCT. Buyers shouldn't delete the product.
-                        // So we pass undefined for onDelete to disable delete button for purchases in this view?
-                        // Or we implement 'onRelinquishOwnership' later.
-                        // For now, let's disable delete/update for purchases view to be safe.
+                        isAdmin={isAdmin} 
                         onDelete={undefined} 
                         onUpdateStock={undefined}
-                        onBuy={handleBuyProduct} // Buy MORE? Yes.
+                        onBuy={handleBuyProduct}
                       />
                     </div>
                   )}

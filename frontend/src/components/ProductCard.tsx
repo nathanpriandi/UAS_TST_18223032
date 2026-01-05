@@ -13,17 +13,12 @@ interface ProductCardProps {
 export default function ProductCard({ product, activeSellerId, isAdmin, onDelete, onUpdateStock, onBuy }: ProductCardProps) {
   const [isBuying, setIsBuying] = useState(false);
 
-  // Ownership Logic
   const isCreator = activeSellerId && String(product.createdBy) === String(activeSellerId);
   const ownershipCount = (activeSellerId && product.owners && product.owners[activeSellerId]) || 0;
   const isOwner = ownershipCount > 0;
 
-  // Permissions
-  // Can delete if Creator or Admin
   const showDelete = (isCreator || isAdmin) && onDelete;
-  // Can restock if Creator or Admin
   const showRestock = (isCreator || isAdmin) && onUpdateStock;
-  // Can buy if NOT Creator (you can buy even if you already own some, just not your own sales)
   const showBuy = activeSellerId && !isCreator && onBuy;
 
   const handleBuy = async () => {
@@ -54,7 +49,6 @@ export default function ProductCard({ product, activeSellerId, isAdmin, onDelete
             ${product.price}
           </span>
           
-          {/* Global Stock Status */}
           {product.stock === 0 ? (
              <span className="inline-block px-2 py-0.5 text-xs font-medium bg-red-100 text-red-800 rounded-full dark:bg-red-900/30 dark:text-red-400">
                Habis
@@ -69,7 +63,6 @@ export default function ProductCard({ product, activeSellerId, isAdmin, onDelete
              </span>
           )}
 
-          {/* Personal Ownership Badge */}
           {isOwner && (
             <span className="inline-block px-2 py-0.5 text-xs font-bold bg-blue-600 text-white rounded-full">
               Dimiliki: {ownershipCount}

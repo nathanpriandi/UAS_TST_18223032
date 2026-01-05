@@ -4,8 +4,6 @@ import { Product, User, CombinedProduct } from "../types";
 const USER_SERVICE_URL = process.env.NEXT_PUBLIC_USER_SERVICE_URL || "";
 const PRODUCT_SERVICE_URL = process.env.NEXT_PUBLIC_PRODUCT_SERVICE_URL || "";
 
-// --- Data Fetching ---
-
 export const getUsers = async (): Promise<User[]> => {
   try {
     const response = await axios.get(`${USER_SERVICE_URL}/users`);
@@ -30,8 +28,6 @@ export const getCombinedCatalog = async (): Promise<CombinedProduct[]> => {
   const [users, products] = await Promise.all([getUsers(), getProducts()]);
 
   return products.map((product) => {
-    // Logic: matching "Product.createdBy" field with User ID
-    // Note: Assuming "createdBy" in product holds the User ID
     const creator = users.find((u) => String(u.id) === String(product.createdBy));
     return {
       ...product,
@@ -40,14 +36,12 @@ export const getCombinedCatalog = async (): Promise<CombinedProduct[]> => {
   });
 };
 
-// --- CRUD Operations ---
-
 export const createProduct = async (productData: Omit<Product, "id" | "rating">, userId: string) => {
   try {
     const payload = {
       ...productData,
-      createdBy: userId, // Inject Seller Identity strictly from session
-      image: "https://placehold.co/400", // Default placeholder
+      createdBy: userId,
+      image: "https://placehold.co/400",
       rating: { rate: 0, count: 0 }
     };
 
