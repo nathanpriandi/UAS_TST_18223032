@@ -41,7 +41,6 @@ const server = http.createServer(async (req, res) => {
         return;
     }
 
-    // GET /api/products
     if (url.pathname === '/api/products' && req.method === 'GET') {
         const products = getProducts();
         res.writeHead(200, { 'Content-Type': 'application/json' });
@@ -49,7 +48,6 @@ const server = http.createServer(async (req, res) => {
         return;
     }
 
-    // GET /api/products/:id
     const idMatch = url.pathname.match(/^\/api\/products\/([a-zA-Z0-9-]+)$/);
     if (idMatch && req.method === 'GET') {
         const id = idMatch[1];
@@ -66,7 +64,6 @@ const server = http.createServer(async (req, res) => {
         return;
     }
 
-    // POST /api/products (Create Product)
     if (url.pathname === '/api/products' && req.method === 'POST') {
         let body = '';
         req.on('data', chunk => body += chunk.toString());
@@ -109,7 +106,6 @@ const server = http.createServer(async (req, res) => {
         return;
     }
 
-    // PUT /api/products/:id (Update Product)
     if (idMatch && req.method === 'PUT') {
         const id = idMatch[1];
         let body = '';
@@ -118,14 +114,12 @@ const server = http.createServer(async (req, res) => {
         req.on('end', async () => {
             try {
                 const data = JSON.parse(body);
-                // No userId validation needed
                 const { ...updates } = data;
 
                 const products = getProducts();
                 const index = products.findIndex(p => String(p.id) === id);
 
                 if (index !== -1) {
-                    // Prevent id from being updated
                     delete updates.id;
                     
                     products[index] = { ...products[index], ...updates };
@@ -146,7 +140,6 @@ const server = http.createServer(async (req, res) => {
         return;
     }
 
-    // DELETE /api/products/:id
     if (idMatch && req.method === 'DELETE') {
         const id = idMatch[1];
         const products = getProducts();
@@ -163,7 +156,6 @@ const server = http.createServer(async (req, res) => {
         return;
     }
 
-    // 404
     res.writeHead(404, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({ error: 'Route not found' }));
 });
