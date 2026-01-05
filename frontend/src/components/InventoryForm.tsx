@@ -1,14 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { createProduct } from "../lib/api";
+import { createProduct, updateProductStock } from "../lib/api";
+import { CombinedProduct } from "../types";
 
 interface InventoryFormProps {
   activeSellerId: string;
-  onSuccess: () => void;
+  onSuccess: (msg: string) => void;
+  currentInventory: CombinedProduct[];
 }
 
-export default function InventoryForm({ activeSellerId, onSuccess }: InventoryFormProps) {
+export default function InventoryForm({ activeSellerId, onSuccess, currentInventory }: InventoryFormProps) {
   const [formData, setFormData] = useState({
     title: "",
     price: "",
@@ -30,18 +32,32 @@ export default function InventoryForm({ activeSellerId, onSuccess }: InventoryFo
     setError("");
 
     try {
-      await createProduct({
-        ...formData,
-        price: Number(formData.price),
-        stock: Number(formData.stock),
-        image: "", // Handled by API default or placeholder
-        createdBy: activeSellerId
-      }, activeSellerId);
+      // Check for duplicates (Case Insensitive)
+      const existingProduct = currentInventory.find(
+        (p) => p.title.toLowerCase().trim() === formData.title.toLowerCase().trim()
+      );
+
+      if (existingProduct) {
+        // Update existing product stock
+        const newStock = existingProduct.stock + Number(formData.stock);
+        await updateProductStock(existingProduct.id, newStock);
+        onSuccess(`Produk sudah ada. Stok diperbarui menjadi ${newStock}.`);
+      } else {
+        // Create new product
+        await createProduct({
+          ...formData,
+          price: Number(formData.price),
+          stock: Number(formData.stock),
+          image: "", // Handled by API default or placeholder
+          createdBy: activeSellerId
+        }, activeSellerId);
+        onSuccess("Produk baru berhasil ditambahkan!");
+      }
       
       setFormData({ title: "", price: "", description: "", category: "general", stock: "0" });
-      onSuccess();
     } catch (err) {
-      setError("Gagal menambahkan produk. Pastikan service aktif.");
+      console.error(err);
+      setError("Gagal memproses data. Pastikan service aktif.");
     } finally {
       setLoading(false);
     }
@@ -125,7 +141,7 @@ export default function InventoryForm({ activeSellerId, onSuccess }: InventoryFo
         disabled={loading}
         className="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 disabled:opacity-50 transition-colors font-medium"
       >
-        {loading ? "Menyimpan..." : "+ Tambah Produk"}
+        {loading ? "Menyimpan..." : "+ Tambah / Update Produk"}
       </button>
     </form>
   );

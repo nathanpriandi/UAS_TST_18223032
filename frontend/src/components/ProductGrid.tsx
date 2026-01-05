@@ -6,9 +6,11 @@ interface ProductGridProps {
   activeSellerId?: string | null;
   isAdmin?: boolean;
   onDelete?: (id: string) => void;
+  onUpdateStock?: (id: string, newStock: number) => void;
+  onBuy?: (product: CombinedProduct) => Promise<void>;
 }
 
-export default function ProductGrid({ products, activeSellerId, isAdmin, onDelete }: ProductGridProps) {
+export default function ProductGrid({ products, activeSellerId, isAdmin, onDelete, onUpdateStock, onBuy }: ProductGridProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {products.map((product) => (
@@ -18,6 +20,8 @@ export default function ProductGrid({ products, activeSellerId, isAdmin, onDelet
           activeSellerId={activeSellerId}
           isAdmin={isAdmin}
           onDelete={onDelete}
+          onUpdateStock={onUpdateStock}
+          onBuy={onBuy}
         />
       ))}
       {products.length === 0 && (
