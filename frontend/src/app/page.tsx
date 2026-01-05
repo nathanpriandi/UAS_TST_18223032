@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getCombinedCatalog, getUsers, deleteProduct } from "../lib/api";
+import { getCombinedCatalog, getUsers, deleteProduct, updateProductStock, createProduct, updateProductOwnership } from "../lib/api";
 import { CombinedProduct, User } from "../types";
 import ProductGrid from "../components/ProductGrid";
 import UserTable from "../components/UserTable";
@@ -42,7 +42,6 @@ export default function Home() {
   }, []);
 
   // Admin Check Logic
-  // Fix: Convert u.id to String because API returns numbers but Select returns strings
   const activeUser = users.find(u => String(u.id) === activeSellerId);
   const isAdmin = activeUser ? (activeUser.username === "admin" || String(activeUser.id) === "1") : false;
 
@@ -63,14 +62,60 @@ export default function Home() {
     }
   };
 
-  const handleProductCreated = () => {
-    showToast("Produk berhasil ditambahkan!");
+  const handleUpdateStock = async (id: string, newStock: number) => {
+    try {
+      await updateProductStock(id, newStock);
+      showToast("Stok produk berhasil diperbarui!");
+      fetchData();
+    } catch (error) {
+      alert("Failed to update stock");
+    }
+  };
+
+  const handleBuyProduct = async (product: CombinedProduct): Promise<void> => {
+    if (!activeSellerId) {
+      alert("Please select a user identity first!");
+      return;
+    }
+    try {
+      // Logic: Update the SINGLE product instance.
+      // 1. Reduce Stock
+      const newStock = product.stock - 1;
+      
+      // 2. Update Ownership Record
+      const currentOwners = product.owners || {};
+      const newOwnerCount = (currentOwners[activeSellerId] || 0) + 1;
+      
+      const newOwners = {
+        ...currentOwners,
+        [activeSellerId]: newOwnerCount
+      };
+
+      await updateProductOwnership(product.id, newStock, newOwners);
+
+      showToast(`Berhasil membeli! Anda sekarang memiliki: ${newOwnerCount} unit.`);
+      await fetchData();
+    } catch (error) {
+      console.error(error);
+      alert("Transaction failed");
+    }
+  };
+
+  const handleProductCreated = (msg?: string) => {
+    showToast(msg || "Produk berhasil ditambahkan!");
     fetchData();
   };
 
-  // Filter products for "My Inventory"
-  const myProducts = activeSellerId 
+  // --- DERIVED LISTS ---
+  
+  // 1. My Sales: Products I Created
+  const mySales = activeSellerId 
     ? products.filter(p => String(p.createdBy) === activeSellerId) 
+    : [];
+
+  // 2. My Purchases: Products I Own (via owners map)
+  const myPurchases = activeSellerId
+    ? products.filter(p => p.owners && p.owners[activeSellerId] && p.owners[activeSellerId] > 0)
     : [];
 
   return (
@@ -129,7 +174,7 @@ export default function Home() {
                   : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300"
               } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
             >
-              Daftar Produk Saya (Konsol Penjual)
+              Inventaris Saya (Jual & Beli)
             </button>
             <button
               onClick={() => setActiveTab("sellers")}
@@ -155,13 +200,15 @@ export default function Home() {
                 products={products} 
                 activeSellerId={activeSellerId} 
                 isAdmin={isAdmin}
-                onDelete={handleDeleteProduct} // Allow delete if admin or owner
+                onDelete={handleDeleteProduct}
+                onUpdateStock={handleUpdateStock}
+                onBuy={handleBuyProduct}
               />
             </section>
           )}
 
           {!loading && activeTab === "inventory" && (
-            <section className="space-y-8">
+            <section className="space-y-12">
               {!activeSellerId ? (
                 <div className="text-center py-10 bg-yellow-50 dark:bg-yellow-900/10 rounded-lg border border-yellow-100 dark:border-yellow-900/30">
                   <p className="text-yellow-800 dark:text-yellow-200 font-medium">
@@ -170,23 +217,69 @@ export default function Home() {
                 </div>
               ) : (
                 <>
-                  <InventoryForm 
-                    activeSellerId={activeSellerId} 
-                    onSuccess={handleProductCreated} 
-                  />
+                  {/* SECTION 1: ADD NEW PRODUCTS (SALES) */}
                   <div>
-                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-                      Produk Saya ({myProducts.length})
-                    </h3>
-                    <ProductGrid 
-                      products={myProducts} 
-                      activeSellerId={activeSellerId}
-                      // Admin can delete, but "My Inventory" implies owner's items anyway.
-                      // Passing isAdmin here ensures consistency if admin views their own inventory.
-                      isAdmin={isAdmin}
-                      onDelete={handleDeleteProduct}
+                    <InventoryForm 
+                      activeSellerId={activeSellerId} 
+                      onSuccess={handleProductCreated} 
+                      currentInventory={mySales}
                     />
                   </div>
+
+                  {/* SECTION 2: MY SALES */}
+                  <div>
+                     <div className="flex items-center mb-4">
+                        <h3 className="text-xl font-bold text-gray-900 dark:text-white mr-2">
+                          Barang Dagangan Saya
+                        </h3>
+                        <span className="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded dark:bg-blue-200 dark:text-blue-800">
+                          {mySales.length} Item
+                        </span>
+                     </div>
+                     
+                    <ProductGrid 
+                      products={mySales} 
+                      activeSellerId={activeSellerId}
+                      isAdmin={isAdmin}
+                      onDelete={handleDeleteProduct}
+                      onUpdateStock={handleUpdateStock}
+                      onBuy={handleBuyProduct} // Can buy your own stuff? Sure, why not.
+                    />
+                  </div>
+
+                  {/* SECTION 3: MY PURCHASES */}
+                  {myPurchases.length > 0 && (
+                    <div className="pt-8 border-t border-gray-200 dark:border-zinc-800">
+                      <div className="flex items-center mb-4">
+                        <h3 className="text-xl font-bold text-gray-900 dark:text-white mr-2">
+                          Barang Belanjaan Saya
+                        </h3>
+                        <span className="bg-green-100 text-green-800 text-xs font-semibold px-2.5 py-0.5 rounded dark:bg-green-200 dark:text-green-900">
+                          {myPurchases.length} Item
+                        </span>
+                     </div>
+                     <p className="text-sm text-gray-500 mb-6">
+                       Produk ini adalah aset yang Anda beli dari pengguna lain. Anda tidak dapat menjualnya kembali di sini, tetapi Anda memilikinya.
+                     </p>
+                      
+                      {/* Reuse ProductGrid but maybe we want a different look? 
+                          For now, keep consistency but the Card will handle the logic. 
+                       */}
+                      <ProductGrid 
+                        products={myPurchases} 
+                        activeSellerId={activeSellerId}
+                        isAdmin={isAdmin} // Admin can still moderate
+                        // No deletion for purchases implemented yet, or use generic delete? 
+                        // Generic delete removes the PRODUCT. Buyers shouldn't delete the product.
+                        // So we pass undefined for onDelete to disable delete button for purchases in this view?
+                        // Or we implement 'onRelinquishOwnership' later.
+                        // For now, let's disable delete/update for purchases view to be safe.
+                        onDelete={undefined} 
+                        onUpdateStock={undefined}
+                        onBuy={handleBuyProduct} // Buy MORE? Yes.
+                      />
+                    </div>
+                  )}
                 </>
               )}
             </section>

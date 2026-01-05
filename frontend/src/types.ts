@@ -18,6 +18,7 @@ export interface Product {
     count: number;
   };
   createdBy: string; // Maps to User ID
+  owners?: Record<string, number>; // Maps UserID -> Quantity Owned
 }
 
 export interface CombinedProduct extends Product {

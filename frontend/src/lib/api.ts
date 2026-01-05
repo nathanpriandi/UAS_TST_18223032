@@ -59,6 +59,31 @@ export const createProduct = async (productData: Omit<Product, "id" | "rating">,
   }
 };
 
+export const updateProductStock = async (productId: string, newStock: number) => {
+  try {
+    const response = await axios.put(`${PRODUCT_SERVICE_URL}/api/products/${productId}`, {
+      stock: newStock,
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error updating product stock:", error);
+    throw error;
+  }
+};
+
+export const updateProductOwnership = async (productId: string, newStock: number, newOwners: Record<string, number>) => {
+  try {
+    const response = await axios.put(`${PRODUCT_SERVICE_URL}/api/products/${productId}`, {
+      stock: newStock,
+      owners: newOwners
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error updating product ownership:", error);
+    throw error;
+  }
+};
+
 export const deleteProduct = async (productId: string) => {
   try {
     await axios.delete(`${PRODUCT_SERVICE_URL}/api/products/${productId}`);

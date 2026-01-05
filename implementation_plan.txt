@@ -1,0 +1,33 @@
+# OPTIMIZED INTEGRATED SERVICE: ACTIVE INVENTORY & SALES SIMULATOR
+
+## 1. Identity & Data Consistency Fix (STB Side)
+- Update 'nathanpriandi/uas_tst_18223032/.../data/products.json':
+  Assign initial sample products (ID: 1, 2, 3) to the admin user by adding '"createdBy": "1"' to each object. This ensures "Created By: System Administrator" is displayed correctly on first load.
+
+## 2. Backend Service Optimization (server.js)
+- Maintain the current POST logic which already supports dynamic 'createdBy' and 'stock'.
+- Add a simulated "Sale" logic in the PUT endpoint:
+  Ensure the backend can handle partial updates specifically for the 'stock' field when a simulated purchase occurs.
+
+## 3. Frontend Service Logic (src/lib/api.ts)
+- Standardize Fetching: Continue using String() conversion in 'getCombinedCatalog' to ensure IDs match regardless of being stored as Integers or Strings.
+- Add Update Function: Implement 'updateProductStock(productId, newStock)' to allow the frontend to trigger inventory changes.
+
+## 4. Enhanced E-Commerce Features (UI/UX)
+
+### Feature 1: Ownership-Based Actions (ProductCard.tsx)
+- Display Logic: If 'activeSellerId' is NOT the owner, show a "Beli / Buy" button instead of delete/edit.
+- Sale Interaction: Clicking "Beli" triggers a PUT request that reduces 'product.stock' by 1 in the backend.
+
+### Feature 2: Inventory Management (ProductCard.tsx)
+- Restock Function: Owners and Admins see a "+ Restock" button.
+- Logic: Trigger an update that increments stock by 5.
+
+### Feature 3: Visual Stock Alerts
+- Conditional Styling: Use red text/icons for "Stok Menipis" if stock < 5.
+- Disable Action: If stock is 0, the "Beli" button must be disabled and display "Habis".
+
+## 5. Deployment & Verification
+- Rebuild STB: Run 'docker compose up -d --build' to apply backend changes.
+- Sync Identity: Log in as 'siti_aminah' or 'budi_santoso' to verify that newly created products correctly show their names in the 'Created By' section.
+- Integration Test: Verify that a purchase made as a 'Guest' reduces the stock visible to the 'Admin'.
