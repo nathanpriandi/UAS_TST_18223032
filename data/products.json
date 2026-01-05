@@ -5,6 +5,7 @@
     "price": 109.95,
     "description": "Your perfect pack for everyday use and walks in the forest. Stash your laptop (up to 15 inches) in the padded sleeve, your everyday",
     "category": "men's clothing",
+    "stock": 10,
     "rating": {
       "rate": 3.9,
       "count": 120
@@ -16,6 +17,7 @@
     "price": 22.3,
     "description": "Slim-fitting style, contrast raglan long sleeve, three-button henley placket, light weight & soft fabric for breathable and comfortable wearing.",
     "category": "men's clothing",
+    "stock": 10,
     "rating": {
       "rate": 4.1,
       "count": 259
@@ -27,6 +29,7 @@
     "price": 55.99,
     "description": "great outerwear jackets for Spring/Autumn/Winter, suitable for many occasions, such as working, hiking, camping, mountain/rock climbing, cycling, traveling or other outdoors.",
     "category": "men's clothing",
+    "stock": 10,
     "rating": {
       "rate": 4.7,
       "count": 500

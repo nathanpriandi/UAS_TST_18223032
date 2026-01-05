@@ -74,7 +74,7 @@ const server = http.createServer(async (req, res) => {
         req.on('end', async () => {
             try {
                 const data = JSON.parse(body);
-                const { title, price, description, category, image } = data;
+                const { title, price, description, category, image, createdBy, stock } = data;
 
                 if (!title || !price) {
                     res.writeHead(400, { 'Content-Type': 'application/json' });
@@ -90,8 +90,9 @@ const server = http.createServer(async (req, res) => {
                     description: description || '',
                     category: category || 'general',
                     image: image || '',
+                    stock: Number(stock) || 0,
                     rating: { rate: 0, count: 0 },
-                    createdBy: 'standalone-user'
+                    createdBy: createdBy || 'standalone-user'
                 };
 
                 products.push(newProduct);
